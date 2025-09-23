@@ -17,21 +17,20 @@ public class FileCabinet implements Cabinet {
 
 
 
-    // zakładamy że ktoś dostarcza listę z folderami z zewnatrz dla uprosczenia
+    // zakładamy że ktoś dostarcza listę z folderami z zewnątrz dla uproszczenia
     public FileCabinet(List<Folder> folders){
         this.folders = folders;
     }
 
 
 
-    // znajdz folder po podanej nazwie
     @Override
     public Optional<Folder> findFolderByName(String name) {
         return getFolderByName(name, folders, new ArrayList<>());
     }
 
 
-    public Optional<Folder> getFolderByName(String name, List<Folder> folders, List<Folder> searchResult){
+    private Optional<Folder> getFolderByName(String name, List<Folder> folders, List<Folder> searchResult){
         for(Folder folder : folders){
             if(folder.getName().equals(name)){
                 searchResult.add(folder);
@@ -45,17 +44,13 @@ public class FileCabinet implements Cabinet {
     }
 
 
-    // znajdz foldery po rozmiarze
+
     @Override
     public List<Folder> findFoldersBySize(String size) {
-//        return folders.stream()
-//                .filter(f -> f.getSize().equals(size))
-//                .toList();
-
         return getFoldersBySize(size, folders, new ArrayList<>());
     }
 
-    public List<Folder> getFoldersBySize(String size, List<Folder> folders, List<Folder> searchResult){
+    private List<Folder> getFoldersBySize(String size, List<Folder> folders, List<Folder> searchResult){
         for(Folder folder : folders){
             if(folder.getSize().equals(size)){
                 searchResult.add(folder);
@@ -70,6 +65,7 @@ public class FileCabinet implements Cabinet {
 
     @Override
     public int count() {
+        structureCount = 0;
         countStructure(folders);
         return structureCount;
     }
