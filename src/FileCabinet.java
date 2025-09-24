@@ -1,9 +1,10 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 
-    /*
+/*
 Poniżej przekazujemy zadanie z prośbą o analizę poniższego kodu i samodzielne zaimplementowanie metod findFolderByName,
  findFolderBySize, count w klasie FileCabinet-
  najchętniej unikając powielania kodu i umieszczając całą logikę w klasie FileCabinet. Z uwzględnieniem w analizie i implementacji interfejsu MultiFolder!
@@ -62,10 +63,40 @@ public class FileCabinet implements Cabinet {
         return searchResult;
     }
 
+    /*
+
+    Optymalizacja zaproponowana przez chatGPT żeby 2 metody połączyć w jedno za pomocą predykatu.
+    Nie jest to moje rozwiązanie więc go nie zmieniam, ale dodaje do wglądu lepsze rozwiązanie.(mniej boilerplate)
+
+    @Override
+    public Optional<Folder> findFolderByName(String name) {
+        List<Folder> result = new ArrayList<>();
+        recursiveSearch(f -> f.getName().equals(name), folders, result);
+        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
+    }
+
+    @Override
+    public List<Folder> findFoldersBySize(String size) {
+        List<Folder> result = new ArrayList<>();
+        recursiveSearch(f -> f.getSize().equals(size), folders, result);
+        return result;
+    }
+
+    private void recursiveSearch(Predicate<Folder> filter, List<Folder> currentFolders, List<Folder> result){
+            for (Folder folder: currentFolders){
+                if(filter.test(folder)){
+                    result.add(folder);
+                }
+                if(folder instanceof MultiFolder multiFolder){
+                    recursiveSearch(filter, multiFolder.getFolders(), result);
+            }
+    }
+*/
+
 
     @Override
     public int count() {
-        structureCount = 0;
+        structureCount = 0;// resetowanie count, aby wynik nie kumulował się w wypadku wielokrotnego wywołania metody na tym samym obiekcie
         countStructure(folders);
         return structureCount;
     }
@@ -82,7 +113,28 @@ public class FileCabinet implements Cabinet {
 
     }
 
+    /*
 
+    Również bardziej elegancka metoda countStructure zaproponowana przez chatGPT. Wówczas, nie trzeba używać
+    zmiennej instancyjnej structureCount.
+
+    private int countStructure(List<Folder> folders) {
+        int count = 0;
+        for (Folder folder : folders) {
+            count++;
+            if (folder instanceof MultiFolder multiFolder) {
+                count += countStructure(multiFolder.getFolders());
+            }
+        }
+        return count;
+    }
+    */
+
+
+
+
+    // metoda testująca(użyłem klas anonimowych, ponieważ w wymogu zadania było żeby wszystko umieścić w klasie FileCabinet,
+    // alternatywnie wygodniejszym rozwiązaniem mogłoby być po prostu stworzyć proste klasy implementujące interfejs Folder, a także MultiFolder.)
     public static void testFileCabinet(){
         List<Folder> testFolders = new ArrayList<>();
         testFolders.add(new Folder() {
@@ -190,13 +242,18 @@ public class FileCabinet implements Cabinet {
 
         FileCabinet testFileCabinet = new FileCabinet(testFolders);
 
-        String searchingName = "project2";
-        String searchingSize = "LARGE";
+        String searchingName = "project1";
+        String searchingSize = "SMALL";
 
 
-        System.out.println("Folder with a name " + searchingName + " name: " + testFileCabinet.findFolderByName(searchingName).get().getName() + " size: " + testFileCabinet.findFolderByName(searchingName).get().getSize());
+        Optional<Folder> found = testFileCabinet.findFolderByName(searchingName);
+
+        found.ifPresentOrElse(
+                f -> System.out.println("Found folder with a name " + searchingName + " name: " + f.getName() + " size: " + f.getSize()),
+                () -> System.out.println("Folder with a name " + searchingName + " not found")
+        );
         System.out.println();
-        System.out.println("Folders with a size " + searchingSize);
+        System.out.println("Folders with a size '" + searchingSize + "' total(" + testFileCabinet.findFoldersBySize(searchingSize).size() + "): ");
         for(Folder folder : testFileCabinet.findFoldersBySize(searchingSize)){
             System.out.println(folder.getName() + " " + folder.getSize());
         }
@@ -206,9 +263,6 @@ public class FileCabinet implements Cabinet {
 
 
     }
-
-
-
 
 }
 
@@ -227,13 +281,11 @@ public class FileCabinet implements Cabinet {
 
 
     interface Folder {
-        // obiekt folder ma swoja nazwe
         String getName();
-        // i ma rozmiar
         String getSize();
     }
 
-    // skoro MultiFolder jest również folderem to znaczy że może zawierać jeszcze swoje foldery czyli List<Folder> folders moze miec foldery(bez folderów) i MultiFoldery(z podfolderami)
+    // skoro MultiFolder jest również folderem(Folder) to znaczy że może zawierać jeszcze swoje foldery czyli List<Folder> folders może mieć foldery(bez folderów) i MultiFoldery(z podfolderami)
     interface MultiFolder extends Folder {
         List<Folder> getFolders();
     }
