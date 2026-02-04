@@ -245,7 +245,7 @@ public class FileCabinet implements Cabinet {
         String searchingSize = "SMALL";
 
 
-        System.out.println("1.Searching for a folder with a name '" + searchingName + "...");
+        System.out.println("1.Testing searching by name method for a folder with a name '" + searchingName + "...");
         Optional<Folder> found = testFileCabinet.findFolderByName(searchingName);
         found.ifPresentOrElse(
                 f -> System.out.println("Found folder with a name " + searchingName + " name: " + f.getName() + " size: " + f.getSize()),
@@ -253,7 +253,7 @@ public class FileCabinet implements Cabinet {
         );
         System.out.println();
 
-        System.out.println("2.Searching for a folder with a size '" + searchingSize + "..");
+        System.out.println("2.Testing searching by size method for folders with a size '" + searchingSize + "...");
 
         System.out.println("Folders with a size '" + searchingSize + "' total(" + testFileCabinet.findFoldersBySize(searchingSize).size() + "): ");
         for(Folder folder : testFileCabinet.findFoldersBySize(searchingSize)){
@@ -261,7 +261,7 @@ public class FileCabinet implements Cabinet {
         }
 
         System.out.println();
-        System.out.println("3.Counting total structure count...");
+        System.out.println("3.Testing count method...");
         System.out.println("Total structure count: " + testFileCabinet.count());
 
 
