@@ -25,7 +25,8 @@ public class FileCabinet implements Cabinet {
 
     @Override
     public Optional<Folder> findFolderByName(String name) {
-        return getFolderByName(name, folders, new ArrayList<>());
+        List<Folder> searchResult = new ArrayList<>();
+        return getFolderByName(name, folders, searchResult);
     }
 
 
@@ -33,7 +34,7 @@ public class FileCabinet implements Cabinet {
     /**
      * Rekurencyjna metoda pomocnicza do wyszukiwania folderu po nazwie.
      * Przechodzi przez całą strukturę folderów aż do znalezienia pierwszego
-     * pasującego elementu.
+     * pasującego elementu.(zgodnie z warunkami zadania dowolny element)
      *
      * @param name nazwa folderu
      * @param folders aktualny poziom struktury folderów
@@ -49,8 +50,13 @@ public class FileCabinet implements Cabinet {
             if(folder instanceof MultiFolder multiFolder){
                 getFolderByName(name, multiFolder.getFolders(), searchResult);
             }
+
         }
-        return searchResult.isEmpty() ? Optional.empty() : Optional.of(searchResult.get(0));
+
+        boolean folderNotFound = searchResult.isEmpty();
+
+        // zwróć pusty Optional, albo pierwszy znaleziony folder z searchResult
+        return folderNotFound  ? Optional.empty() : Optional.of(searchResult.getFirst());
     }
 
 
@@ -118,9 +124,154 @@ public class FileCabinet implements Cabinet {
 
     }
 
-    /*
 
-    Również bardziej elegancka metoda countStructure zaproponowana przez chatGPT. Wówczas, nie trzeba używać
+
+
+
+    /**
+     * Metoda demonstracyjna prezentująca działanie klasy FileCabinet.
+     * Tworzy przykładową strukturę folderów oraz wykonuje:
+     * - wyszukiwanie folderu po nazwie
+     * - wyszukiwanie folderów po rozmiarze
+     * - zliczanie wszystkich elementów struktury
+     */    public static void testFileCabinet(){
+        List<Folder> testFolders = new ArrayList<>();
+        testFolders.add(new Folder() {  //Folder nr1
+            @Override
+            public String getName() {
+                return "photos";
+            }
+
+            @Override
+            public String getSize() {
+                return "SMALL";
+            }
+        });
+
+        testFolders.add(new Folder() {  //Folder nr2
+            @Override
+            public String getName() {
+                return "documents";
+            }
+
+            @Override
+            public String getSize() {
+                return "MEDIUM";
+            }
+        });
+
+        testFolders.add(new MultiFolder() {   //Folder nr3
+            @Override
+            public String getName() {
+                return "albums";
+            }
+
+            @Override
+            public String getSize() {
+                return "LARGE";
+            }
+
+            @Override
+            public List<Folder> getFolders() {
+                return List.of(
+                        new Folder() { //Folder nr4
+                            @Override
+                            public String getName() {
+                                return "music";
+                            }
+
+                            @Override
+                            public String getSize() {
+                                return "LARGE";
+                            }
+                        },
+                        new Folder() {  //Folder nr5
+                            @Override
+                            public String getName() {
+                                return "videos";
+                            }
+
+                            @Override
+                            public String getSize() {
+                                return "MEDIUM";
+                            }
+                        },
+                        new MultiFolder() { //Folder nr6
+                            @Override
+                            public String getName() {
+                                return "projects";
+                            }
+
+                            @Override
+                            public String getSize() {
+                                return "LARGE";
+                            }
+
+                            @Override
+                            public List<Folder> getFolders() {
+                                return List.of(
+                                        new Folder() { //Folder nr7
+                                            @Override
+                                            public String getName() {
+                                                return "project1";
+                                            }
+
+                                            @Override
+                                            public String getSize() {
+                                                return "SMALL";
+                                            }
+                                        },
+                                        new Folder() {  //Folder nr8
+                                            @Override
+                                            public String getName() {
+                                                return "project2";
+                                            }
+
+                                            @Override
+                                            public String getSize() {
+                                                return "MEDIUM";
+                                            }
+                                        }
+                                );
+                            }
+                        }
+                );
+            }
+        });
+
+        FileCabinet testFileCabinet = new FileCabinet(testFolders);
+
+        String searchingName = "project1";
+        String searchingSize = "SMALL";
+
+
+        System.out.println("1.Searching for a folder with a name '" + searchingName + "...");
+        Optional<Folder> found = testFileCabinet.findFolderByName(searchingName);
+        found.ifPresentOrElse(
+                f -> System.out.println("Found folder with a name " + searchingName + " name: " + f.getName() + " size: " + f.getSize()),
+                () -> System.out.println("Folder with a name " + searchingName + " not found")
+        );
+        System.out.println();
+
+        System.out.println("2.Searching for a folder with a size '" + searchingSize + "..");
+
+        System.out.println("Folders with a size '" + searchingSize + "' total(" + testFileCabinet.findFoldersBySize(searchingSize).size() + "): ");
+        for(Folder folder : testFileCabinet.findFoldersBySize(searchingSize)){
+            System.out.println(folder.getName() + " " + folder.getSize());
+        }
+
+        System.out.println();
+        System.out.println("3.Counting total structure count...");
+        System.out.println("Total structure count: " + testFileCabinet.count());
+
+
+
+    }
+
+
+        /*
+
+    Bardziej elegancka metoda countStructure zaproponowana przez chatGPT. Wówczas, nie trzeba używać
     zmiennej instancyjnej structureCount.
 
     private int countStructure(List<Folder> folders) {
@@ -168,145 +319,4 @@ public class FileCabinet implements Cabinet {
 
 
 
-
-
-    /**
-     * Metoda demonstracyjna prezentująca działanie klasy FileCabinet.
-     * Tworzy przykładową strukturę folderów oraz wykonuje:
-     * - wyszukiwanie folderu po nazwie
-     * - wyszukiwanie folderów po rozmiarze
-     * - zliczanie wszystkich elementów struktury
-     */    public static void testFileCabinet(){
-        List<Folder> testFolders = new ArrayList<>();
-        testFolders.add(new Folder() {
-            @Override
-            public String getName() {
-                return "photos";
-            }
-
-            @Override
-            public String getSize() {
-                return "SMALL";
-            }
-        });
-
-        testFolders.add(new Folder() {
-            @Override
-            public String getName() {
-                return "documents";
-            }
-
-            @Override
-            public String getSize() {
-                return "MEDIUM";
-            }
-        });
-
-        testFolders.add(new MultiFolder() {
-            @Override
-            public String getName() {
-                return "albums";
-            }
-
-            @Override
-            public String getSize() {
-                return "LARGE";
-            }
-
-            @Override
-            public List<Folder> getFolders() {
-                return List.of(
-                        new Folder() {
-                            @Override
-                            public String getName() {
-                                return "music";
-                            }
-
-                            @Override
-                            public String getSize() {
-                                return "LARGE";
-                            }
-                        },
-                        new Folder() {
-                            @Override
-                            public String getName() {
-                                return "videos";
-                            }
-
-                            @Override
-                            public String getSize() {
-                                return "MEDIUM";
-                            }
-                        },
-                        new MultiFolder() { // MultiFolder w MultiFolderze
-                            @Override
-                            public String getName() {
-                                return "projects";
-                            }
-
-                            @Override
-                            public String getSize() {
-                                return "LARGE";
-                            }
-
-                            @Override
-                            public List<Folder> getFolders() {
-                                return List.of(
-                                        new Folder() {
-                                            @Override
-                                            public String getName() {
-                                                return "project1";
-                                            }
-
-                                            @Override
-                                            public String getSize() {
-                                                return "SMALL";
-                                            }
-                                        },
-                                        new Folder() {
-                                            @Override
-                                            public String getName() {
-                                                return "project2";
-                                            }
-
-                                            @Override
-                                            public String getSize() {
-                                                return "MEDIUM";
-                                            }
-                                        }
-                                );
-                            }
-                        }
-                );
-            }
-        });
-
-        FileCabinet testFileCabinet = new FileCabinet(testFolders);
-
-        String searchingName = "project1";
-        String searchingSize = "SMALL";
-
-
-        System.out.println("1.Searching for a folder with a name '" + searchingName + "...");
-        Optional<Folder> found = testFileCabinet.findFolderByName(searchingName);
-        found.ifPresentOrElse(
-                f -> System.out.println("Found folder with a name " + searchingName + " name: " + f.getName() + " size: " + f.getSize()),
-                () -> System.out.println("Folder with a name " + searchingName + " not found")
-        );
-        System.out.println();
-
-        System.out.println("2.Searching for a folder with a size '" + searchingSize + "..");
-
-        System.out.println("Folders with a size '" + searchingSize + "' total(" + testFileCabinet.findFoldersBySize(searchingSize).size() + "): ");
-        for(Folder folder : testFileCabinet.findFoldersBySize(searchingSize)){
-            System.out.println(folder.getName() + " " + folder.getSize());
-        }
-
-        System.out.println();
-        System.out.println("3.Counting total structure count...");
-        System.out.println("Total structure count: " + testFileCabinet.count());
-
-
-
-    }
 }
